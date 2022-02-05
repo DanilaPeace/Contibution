@@ -1,10 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+pragma solidity ^0.8.0;
+
 contract Contribution {
     address public owner;
     address[] private benefactors;
-    mapping (address => uint) private beneractorsToAmount;
+    mapping (address => uint) private benefactorsToAmount;
+    mapping (address => bool) private havingBenefactors;
     uint public totalBalance;
 
     modifier onlyOwner() {
@@ -17,14 +20,17 @@ contract Contribution {
     }
 
     function makeDonat() public payable {
-        require(msg.value >= .001 ether, "You need send value more then .001");
-        beneractorsToAmount[msg.sender] += msg.value;
-        benefactors.push(msg.sender);
+        require(msg.value >= .001 ether, "You need send value more then .001 coin");
+        benefactorsToAmount[msg.sender] += msg.value;
+        if (!havingBenefactors[msg.sender]) {
+            benefactors.push(msg.sender);
+            havingBenefactors[msg.sender] = true;
+        }
         totalBalance += msg.value;
     }
 
     function sendTo(address payable _to, uint amount) public payable onlyOwner{
-        require(amount < totalBalance, "There is not that amount");
+        require(amount < totalBalance, "There is no such amount of coins");
         _to.transfer(amount);
         totalBalance -= amount;
     }
@@ -34,7 +40,7 @@ contract Contribution {
     }
 
     function getTotalDonatsOfAddress(address beneractor) public view returns(uint) {
-        require(beneractorsToAmount[beneractor] != 0, "There is not this benefactor");
-        return beneractorsToAmount[beneractor];
+        require(havingBenefactors[beneractor], "There is not this benefactor");
+        return benefactorsToAmount[beneractor];
     }
 }
