@@ -48,6 +48,9 @@ describe("Contribution", () => {
       await expect(
         contribution.connect(acc2).sendTo(acc2.address, 1)
       ).to.be.revertedWith("You are not an owner");
+
+      // Owner send coins
+      await contribution.sendTo(acc2.address, 1);
     });
 
     it("Should fail if contribution doen't have enough coins", async () => {
@@ -58,6 +61,12 @@ describe("Contribution", () => {
     });
 
     it("Should be fail if there is no address in benefactor list", async () => {
+      await callMakeDonatFrom(owner, 1);
+
+      expect(
+        await contribution.getTotalDonatsOfAddress(owner.address)
+      ).to.equal(ethers.utils.parseEther("1"));
+
       await expect(
         contribution.getTotalDonatsOfAddress(acc2.address)
       ).to.be.revertedWith("This address didn't make donats");
