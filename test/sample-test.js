@@ -1,19 +1,38 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const Contribution = require("../artifacts/contracts/Conrtibution.sol/Contribution.json");
 
-describe("Greeter", function () {
-  it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+async function getContribution(signer) {
+  const contributionContractFactory = await ethers.getContractFactory(
+    "Contribution",
+    signer
+  );
+  const contribution = await contributionContractFactory.deploy();
+  await contribution.deployed();
+  return contribution;
+}
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+describe("Contribution", async function () {
+ 
+  it("There is no repeating addresses of benefactors in array", async () => {
+    const [acc1, acc2, acc3] = await ethers.getSigners();
+    const contribution = await getContribution(acc1);
+    const contributionContract = await new ethers.Contract(
+      contribution.address,
+      Contribution.abi,
+      acc1
+    );
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+    await contributionContract
+      .connect(acc2)
+      .makeDonat({ value: ethers.utils.parseEther("1") });
+    await contributionContract
+      .connect(acc2)
+      .makeDonat({ value: ethers.utils.parseEther("1") });
+    expect(await contributionContract.getBenefactors()).to.eql([acc2.address]);
+  });
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+  it("Only owner can send the coins", async () => {
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
 });
