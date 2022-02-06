@@ -11,7 +11,7 @@ contract Contribution {
     uint public totalBalance;
 
     modifier onlyOwner() {
-        require(msg.sender == owner, "You are not owner");
+        require(msg.sender == owner, "You are not an owner");
         _;
     }
 
@@ -40,7 +40,7 @@ contract Contribution {
     }
 
     function getTotalDonatsOfAddress(address beneractor) public view returns(uint) {
-        require(havingBenefactors[beneractor], "There is not this benefactor");
+        require(havingBenefactors[beneractor], "This address didn't make donats");
         return benefactorsToAmount[beneractor];
     }
 }
