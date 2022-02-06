@@ -7,10 +7,10 @@ async function printBalanceOf(address, msg = "") {
 }
 
 describe("Contribution", () => {
-  let ContributionFactory, contribution, owner, acc2, acc3;
+  let ContributionFactory, contribution, owner, acc2;
 
   beforeEach(async () => {
-    [owner, acc2, acc3] = await ethers.getSigners();
+    [owner, acc2] = await ethers.getSigners();
     ContributionFactory = await ethers.getContractFactory("Contribution");
     contribution = await ContributionFactory.deploy();
     await contribution.deployed();
@@ -28,18 +28,26 @@ describe("Contribution", () => {
     });
   });
 
-  describe("Checking of the receive and send coins", () => {
+  describe("Check receiving, sending coins and getting benefactors", () => {
     it("Should unique benefactors", async () => {
       await callMakeDonatFrom(acc2, 1);
       await callMakeDonatFrom(acc2, 1);
       expect(await contribution.getBenefactors()).to.eql([acc2.address]);
     });
 
+    it("Should fail if value <= 0.001", async () => {
+      await expect(
+        contribution
+          .connect(acc2)
+          .makeDonat({ value: ethers.utils.parseEther("0.0001") })
+      ).to.be.revertedWith("You need send value more then .001 coin");
+    });
+
     it("Should fail if not owner send coins", async () => {
       await callMakeDonatFrom(acc2, 1);
       await expect(
         contribution.connect(acc2).sendTo(acc2.address, 1)
-      ).to.be.revertedWith("You are not owner");
+      ).to.be.revertedWith("You are not an owner");
     });
 
     it("Should fail if contribution doen't have enough coins", async () => {
@@ -47,6 +55,12 @@ describe("Contribution", () => {
       await expect(
         contribution.sendTo(acc2.address, ethers.utils.parseEther("1"))
       ).to.be.revertedWith("There is no such amount of coins");
+    });
+
+    it("Should be fail if there is no address in benefactor list", async () => {
+      await expect(
+        contribution.getTotalDonatsOfAddress(acc2.address)
+      ).to.be.revertedWith("This address didn't make donats");
     });
   });
 });
