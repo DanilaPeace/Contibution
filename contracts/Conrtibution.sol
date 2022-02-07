@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-pragma solidity ^0.8.0;
-
 contract Contribution {
     address public owner;
     address[] private benefactors;
@@ -39,7 +37,7 @@ contract Contribution {
         return benefactors;
     }
 
-    function getTotalDonatsOfAddress(address beneractor) public view returns(uint) {
+    function getTotalDonatsOf(address beneractor) public view returns(uint) {
         require(havingBenefactors[beneractor], "This address didn't make donats");
         return benefactorsToAmount[beneractor];
     }
